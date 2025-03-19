@@ -177,7 +177,14 @@ int run_client(const char *port, bool gso, const char *logfile, const char *cc, 
     // start time
     start_time = client_ctx.now->cb(client_ctx.now);
 
-    int ret = quicly_connect(&conn, &client_ctx, host, sa, NULL, &next_cid, resumption_token, 0, 0);
+    ptls_handshake_properties_t hsprop = {{{{NULL}}}};
+    ptls_iovec_t proposed_alpn[] = {
+        { (uint8_t *) "hq-interop", 10}
+    };
+    hsprop.client.negotiated_protocols.list = proposed_alpn;
+    hsprop.client.negotiated_protocols.count = sizeof(proposed_alpn) / sizeof(ptls_iovec_t);
+
+    int ret = quicly_connect(&conn, &client_ctx, host, sa, NULL, &next_cid, resumption_token, &hsprop, 0);
     assert(ret == 0);
     ++next_cid.master_id;
 
